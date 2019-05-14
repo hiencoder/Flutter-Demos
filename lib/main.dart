@@ -1,94 +1,73 @@
 import 'package:flutter/material.dart';
-import './app_screens/home.dart';
 
 void main() {
   runApp(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: "Exploring UI widgets",
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text("Long List"),
-        ),
-        body: getListViewLongList(),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            debugPrint("Fab click");
-          },
-          child: Icon(Icons.add),
-          tooltip: "Add One More Item",
-        ),
-
-        //Basic listView
-        /*appBar: AppBar(
-          title: Text("Basic ListView"),
-        ),
-        body: getListView(),*/
-
-        //Long list
-      )
-      //Home(),
-      ));
+    debugShowCheckedModeBanner: false,
+    title: "Stateful App Example",
+    home: FavoriteCity(),
+  ));
 }
 
-Widget getListView() {
-  var lv = ListView(
-    children: <Widget>[
-      ListTile(
-        leading: Icon(Icons.landscape),
-        title: Text("Landscape"),
-        subtitle: Text("Beautiful View!"),
-        trailing: Icon(Icons.wb_sunny),
-        onTap: () {
-          debugPrint("LandScape tap");
-        },
-      ),
-      ListTile(
-        leading: Icon(Icons.laptop_mac),
-        title: Text("Macbook"),
-      ),
-      ListTile(
-        leading: Icon(Icons.phone),
-        title: Text("Phone"),
-      ),
-      Text("Yet another element in Light"),
-      Container(
-        color: Colors.red,
-        height: 50.0,
-      )
-    ],
-  );
-  return lv;
+class FavoriteCity extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _FavoriteCityState();
+  }
 }
 
-List<String> getListElements() {
-  var items = List<String>.generate(1000, (counter) => "Item $counter");
-  return items;
-}
+class _FavoriteCityState extends State<FavoriteCity> {
+  String nameCity = "";
 
-Widget getListViewLongList() {
-  var listItem = getListElements();
-  var listView = ListView.builder(itemBuilder: (context, index) {
-    return ListTile(
-      leading: Icon(Icons.arrow_right),
-      title: Text(listItem[index]),
-      onTap: () {
-        //debugPrint('${listItem[index]} was tapped!');
-        showSnackBar(context, '${listItem[index]} was tapped');
-      },
+  //Mảng string cho dropdownlist
+  var currencies = ['Dollar', 'VND', 'Euro'];
+
+  //String đc chon
+  var currentItemSelected = 'Dollar';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Stateful App Example"),
+      ),
+      body: Container(
+        margin: EdgeInsets.all(20.0),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              onSubmitted: (String userInput) {
+                setState(() {
+                  nameCity = userInput;
+                });
+              },
+            ),
+            DropdownButton<String>(
+              items: currencies.map((String dropdownStringItem) {
+                return DropdownMenuItem<String>(
+                  value: dropdownStringItem,
+                  child: Text(dropdownStringItem),
+                );
+              }).toList(),
+              onChanged: (String value) {
+                _onDropDownItemSelected(value);
+              },
+              value: currentItemSelected,
+            ),
+            Padding(
+                padding: EdgeInsets.all(30.0),
+                child: Text(
+                  "City: $nameCity",
+                  style: TextStyle(fontSize: 20.0),
+                ))
+          ],
+        ),
+      ),
     );
-  });
+  }
 
-  return listView;
-}
-
-void showSnackBar(BuildContext context, String content) {
-  var snackBar = SnackBar(
-      content: Text(content),
-      action: SnackBarAction(
-        label: "UNDO",
-        onPressed: () {
-          debugPrint("UNDO click");
-        },
-      ));
-  Scaffold.of(context).showSnackBar(snackBar);
+  void _onDropDownItemSelected(String newValueSelected) {
+    setState(() {
+      this.currentItemSelected = newValueSelected;
+    });
+  }
 }
