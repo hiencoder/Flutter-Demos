@@ -41,8 +41,8 @@ flutter:
   uses-material-design: true
 
     # To add assets to your application, add an assets section, like this:
-    #assets:
-    #- images/venom.jpg
+  assets:
+    - images/money.png
     #- images/a_dot_ham.jpeg
 
     # An image asset can refer to one or more resolution-specific "variants", see
@@ -62,7 +62,7 @@ flutter:
     # - asset: fonts/Roboto-Regular.ttf
     # - asset: fonts/Roboto-Italic.ttf
     #  weight: 700
-    #- asset: fonts/Roboto-LightItalic.ttf
+  #- asset: fonts/Roboto-LightItalic.ttf
   # weight: 300
   #style: italic
   #- family: Raleway
