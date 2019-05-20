@@ -1,23 +1,30 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/model/note.dart';
+import 'package:flutter_app/utils/database_helper.dart';
+import 'package:intl/intl.dart';
 
 class NoteDetail extends StatefulWidget {
   String appBarTitle;
+  final Note note;
 
-  NoteDetail(this.appBarTitle);
+  NoteDetail(this.note, this.appBarTitle);
 
   @override
   State<StatefulWidget> createState() {
-    return NoteDetailState(this.appBarTitle);
+    return NoteDetailState(this.note, this.appBarTitle);
   }
 }
 
 class NoteDetailState extends State<NoteDetail> {
   String appBarTitle;
+  Note note;
+  DatabaseHelper databaseHelper = DatabaseHelper();
 
-  NoteDetailState(this.appBarTitle);
+  NoteDetailState(this.note, this.appBarTitle);
 
-  static var priority = ['High', 'medium', 'Low'];
-  String currentItemSelected = priority[0];
+  static var priorities = ['High', 'Low'];
+  String currentItemSelected = priorities[0];
 
   TextEditingController titleController = TextEditingController();
   TextEditingController contentController = TextEditingController();
@@ -25,6 +32,9 @@ class NoteDetailState extends State<NoteDetail> {
   @override
   Widget build(BuildContext context) {
     TextStyle textStyle = Theme.of(context).textTheme.title;
+    //Fetch data
+    titleController.text = note.title;
+    contentController.text = note.description;
     return WillPopScope(
       child: Scaffold(
         appBar: AppBar(
@@ -46,7 +56,7 @@ class NoteDetailState extends State<NoteDetail> {
               //First element
               ListTile(
                 title: DropdownButton(
-                  items: priority.map((String dropDownStringItem) {
+                  items: priorities.map((String dropDownStringItem) {
                     return DropdownMenuItem<String>(
                       value: dropDownStringItem,
                       child: Text(dropDownStringItem),
@@ -58,6 +68,7 @@ class NoteDetailState extends State<NoteDetail> {
                     setState(() {
                       debugPrint('Value: $newValue');
                       Text(newValue);
+                      updatePriorityAsInt(newValue);
                     });
                   },
                 ),
@@ -71,6 +82,7 @@ class NoteDetailState extends State<NoteDetail> {
                   style: textStyle,
                   onChanged: (title) {
                     debugPrint('Title: $title');
+                    updateTitle();
                   },
                   decoration: InputDecoration(
                       labelText: 'Title',
@@ -88,6 +100,7 @@ class NoteDetailState extends State<NoteDetail> {
                   style: textStyle,
                   onChanged: (content) {
                     debugPrint('Content $content');
+                    updateDescription();
                   },
                   decoration: InputDecoration(
                       labelText: 'Content',
@@ -106,6 +119,7 @@ class NoteDetailState extends State<NoteDetail> {
                         child: RaisedButton(
                       onPressed: () {
                         debugPrint('Save note');
+                        saveNote();
                       },
                       color: Theme.of(context).primaryColorDark,
                       textColor: Theme.of(context).primaryColorLight,
@@ -145,7 +159,91 @@ class NoteDetailState extends State<NoteDetail> {
   }
 
   void backToPreviousScreen() {
-    Navigator.pop(context);
+    Navigator.pop(context, true);
+  }
+
+  //Convert string priority -> integer before saving database
+  void updatePriorityAsInt(String value) {
+    switch (value) {
+      case 'High':
+        note.priority = 1;
+        break;
+      case 'Low':
+        note.priority = 2;
+        break;
+    }
+  }
+
+  //Convert int -> string display dropdown
+  String getPriorityAsString(int value) {
+    String priority;
+    switch (value) {
+      case 1:
+        priority = priorities[0]; //'High'
+        break;
+      case 2:
+        priority = priorities[1]; //'Low'
+        break;
+    }
+    return priority;
+  }
+
+  //update title
+  void updateTitle() {
+    note.title = titleController.text;
+  }
+
+  //Update content
+  void updateDescription() {
+    note.description = contentController.text;
+  }
+
+  //Save note to database
+  void saveNote() async {
+    backToPreviousScreen();
+    note.date = DateFormat.yMMMd().format(DateTime.now());
+    int result;
+    if (note.id != null) {
+      //Update note
+      result = await databaseHelper.updateNote(note);
+    } else {
+      //Insert note
+      result = await databaseHelper.insertNote(note);
+    }
+    if (result != 0) {
+      //Save note success
+      showAlertDialog('Status', 'Save note successfully');
+    } else {
+      //Save error
+      showAlertDialog('Status', 'Save note error');
+    }
+  }
+
+  //Delete Note
+  void deleteNote() async {
+    if (note.id != null) {
+      // Note is found
+      int result = await databaseHelper.deleteNoteById(note.id);
+      if (result != 0) {
+        showAlertDialog('Status', 'Delete note is success!');
+      } else {
+        showAlertDialog('Status', 'Delete note is not success!');
+      }
+    }
+
+    if (note.id == null) {
+      //Note is not found
+      showAlertDialog('Status', 'Note empty');
+      return;
+    }
+  }
+
+  void showAlertDialog(String title, String message) {
+    AlertDialog dialog = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+    );
+    showDialog(context: context, builder: (_) => dialog);
   }
 }
 

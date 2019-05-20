@@ -47,7 +47,7 @@ class DatabaseHelper {
   }
 
   //Fetch all note
-  getAllNote() async {
+  Future<List<Map<String, dynamic>>> getAllNote() async {
     Database database = await this.database;
     //Rawquery
     var result =
@@ -80,5 +80,33 @@ class DatabaseHelper {
     return result;
   }
 
+  //Delete note using sql query
+  Future<int> deleteNoteById(int id) async {
+    Database database = await this.database;
+    var result =
+        await database.rawDelete('DELETE FROM $noteTable WHERE $colId = $id');
+    return result;
+  }
 
+  //Get number note
+  Future<int> getCount() async {
+    Database database = await this.database;
+    List<Map<String, dynamic>> x =
+        await database.rawQuery("SELECT COUNT (*) FROM $noteTable");
+    int result = Sqflite.firstIntValue(x);
+    return result;
+  }
+
+  //Get list map -> convert to list note
+  Future<List<Note>> getNoteList() async {
+    var noteMapList = await getAllNote(); //Get map list from database
+    int count = noteMapList.length; //get number note
+
+    List<Note> notes = List<Note>();
+    for (int i = 0; i < count; i++) {
+      notes.add(Note.fromMapObject(noteMapList[i]));
+    }
+
+    return notes;
+  }
 }
